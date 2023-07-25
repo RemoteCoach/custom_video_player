@@ -1,4 +1,4 @@
-group 'cl.ceisufro.native_video_view'
+group 'com.projects.customvideoplayer'
 version '1.0-SNAPSHOT'
 
 buildscript {

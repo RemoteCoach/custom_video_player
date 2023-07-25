@@ -1,4 +1,4 @@
-package cl.ceisufro.native_video_view
+package com.projects.customvideoplayer
 
 interface NativeVideoViewOptionsSink {
     fun setUseExoPlayer(useExoPlayer: Boolean)

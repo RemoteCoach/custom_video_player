@@ -28,12 +28,17 @@ class _MyAppState extends State<MyApp> {
         keepAspectRatio: true,
         showMediaController: true,
         enableVolumeControl: true,
+        autoHideTime: const Duration(seconds: 3),
+        useExoPlayer: true,
         onCreated: (controller) {
           controller.setVideoSource(
-            'assets/example.mp4',
-            sourceType: VideoSourceType.asset,
+            "https://rcwl-prod.s3.eu-west-2.amazonaws.com/files/15d8fd20-80fe-4829-9c28-8766ae5bbd25/PRE_AND_POST_NATAL/FINAL_FULL_BODY_PREG_WORKOUT_WITH_HILS.mp4",
+            sourceType: VideoSourceType.network,
             requestAudioFocus: true,
           );
+        },
+        onProgress: (elapsedtime, duration) {
+          debugPrint('NativeVideoView: current progress: $duration');
         },
         onPrepared: (controller, info) {
           debugPrint('NativeVideoView: Video prepared');

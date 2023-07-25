@@ -38,7 +38,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "cl.ceisufro.native_video_view_example"
+        applicationId "com.projects.customvideoplayer_example"
         minSdkVersion 21
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

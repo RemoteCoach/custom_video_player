@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.0.8
+  file: 6.1.4
   flutter_plugin_android_lifecycle: ^2.0.5
 
 dev_dependencies:
@@ -31,7 +32,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: cl.ceisufro.native_video_view
+        package: com.projects.customvideoplayer
         pluginClass: NativeVideoViewPlugin
       ios:
         pluginClass: NativeVideoViewPlugin

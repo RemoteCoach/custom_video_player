@@ -74,11 +74,14 @@ class NativeVideoView extends StatefulWidget {
   /// when the player is ready to start the playback of a video.
   final PreparedCallback onPrepared;
 
+  final VideoViewController? videoViewController;
+
   /// Constructor of the widget.
   const NativeVideoView({
     Key? key,
     this.keepAspectRatio,
     this.showMediaController,
+    this.videoViewController,
     this.useExoPlayer,
     this.autoHide,
     this.autoHideTime,
@@ -154,15 +157,16 @@ class _NativeVideoViewState extends State<NativeVideoView> {
   Widget _buildVideoView({required Widget child}) {
     bool keepAspectRatio = widget.keepAspectRatio ?? false;
     bool showMediaController = widget.showMediaController ?? false;
-    Widget videoView = keepAspectRatio
+   /* Widget videoView = keepAspectRatio
         ? AspectRatio(
             child: child,
             aspectRatio: _aspectRatio,
           )
-        : child;
+        : child;*/
     return showMediaController
         ? _MediaController(
-            child: videoView,
+            child: child,
+            aspectRatio: _aspectRatio,
             controller: _mediaController,
             autoHide: widget.autoHide,
             autoHideTime: widget.autoHideTime,
@@ -171,7 +175,7 @@ class _NativeVideoViewState extends State<NativeVideoView> {
             onPositionChanged: _onPositionChanged,
             onVolumeChanged: _onVolumeChanged,
           )
-        : videoView;
+        : child;
   }
 
   /// Callback that is called when the view is created in the platform.
@@ -231,6 +235,7 @@ class _NativeVideoViewState extends State<NativeVideoView> {
   /// Function that is called when the player updates the time played.
   void onProgress(int position, int duration) {
     if (widget.onProgress != null) widget.onProgress!(position, duration);
+
     notifyPlayerPosition(position, duration);
   }
 

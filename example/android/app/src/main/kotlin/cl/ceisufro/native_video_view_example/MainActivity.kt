@@ -1,4 +1,4 @@
-package cl.ceisufro.native_video_view_example
+package com.projects.customvideoplayer_example
 
 import io.flutter.embedding.android.FlutterActivity
 

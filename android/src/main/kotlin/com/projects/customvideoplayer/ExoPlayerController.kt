@@ -1,25 +1,30 @@
-package cl.ceisufro.native_video_view
+package com.projects.customvideoplayer
 
 import android.content.Context
-import android.media.AudioManager
-import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.SurfaceView
 import android.view.View
-import android.widget.VideoView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.upstream.DataSource
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
 import java.util.*
+import com.google.android.exoplayer2.upstream.DefaultDataSource.Factory as DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource.Factory as DefaultHttpDataSourceFactory
 
 
-class NativeVideoViewController(
+class ExoPlayerController(
     private val id: Int,
     private val context: Context,
     binaryMessenger: BinaryMessenger,
@@ -27,27 +32,30 @@ class NativeVideoViewController(
 ) : DefaultLifecycleObserver,
     MethodChannel.MethodCallHandler,
     PlatformView,
-    MediaPlayer.OnPreparedListener,
-    MediaPlayer.OnErrorListener,
-    MediaPlayer.OnCompletionListener {
+    Player.Listener {
     private val methodChannel: MethodChannel =
         MethodChannel(binaryMessenger, "native_video_view_$id")
     private val lifeCycleHashcode: Int
     private val constraintLayout: ConstraintLayout
-    private var videoView: VideoView? = null
+    private val surfaceView: SurfaceView
+    private val exoPlayer: ExoPlayer
     private var dataSource: String? = null
-    private var disposed: Boolean = false
     private var requestAudioFocus: Boolean = true
     private var volume: Double = 1.0
     private var mute: Boolean = false
-    private var mediaPlayer: MediaPlayer? = null
+    private var disposed: Boolean = false
     private var playerState: PlayerState = PlayerState.NOT_INITIALIZED
 
     init {
         this.methodChannel.setMethodCallHandler(this)
         this.lifeCycleHashcode = lifecycleProvider.getLifecycle().hashCode()
         this.constraintLayout = LayoutInflater.from(context)
-            .inflate(R.layout.video_layout, null) as ConstraintLayout
+            .inflate(R.layout.exoplayer_layout, null) as ConstraintLayout
+        this.surfaceView = constraintLayout.findViewById(R.id.exo_player_surface_view)
+        val trackSelector = DefaultTrackSelector(context)
+        this.exoPlayer = ExoPlayer.Builder(context)
+            .setTrackSelector(trackSelector)
+            .build()
         lifecycleProvider.getLifecycle()!!.addObserver(this)
     }
 
@@ -61,7 +69,7 @@ class NativeVideoViewController(
         methodChannel.setMethodCallHandler(null)
         this.destroyVideoView()
         lifecycleProvider.getLifecycle()!!.removeObserver(this)
-        Log.d("NVV#NativeView", "Disposed view $id")
+        Log.d("NVV#ExoPlayer", "Disposed view $id")
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -95,18 +103,18 @@ class NativeVideoViewController(
             }
             "player#currentPosition" -> {
                 val arguments = HashMap<String, Any>()
-                arguments["currentPosition"] = videoView?.currentPosition ?: 0
+                arguments["currentPosition"] = exoPlayer.currentPosition
                 result.success(arguments)
             }
             "player#isPlaying" -> {
                 val arguments = HashMap<String, Any>()
-                arguments["isPlaying"] = videoView?.isPlaying ?: false
+                arguments["isPlaying"] = exoPlayer.isPlaying
                 result.success(arguments)
             }
             "player#seekTo" -> {
                 val position: Int? = call.argument("position")
                 if (position != null)
-                    videoView?.seekTo(position)
+                    exoPlayer.seekTo(position.toLong())
                 result.success(null)
             }
             "player#toggleSound" -> {
@@ -150,29 +158,63 @@ class NativeVideoViewController(
     }
 
     private fun configurePlayer() {
-        videoView = constraintLayout.findViewById(R.id.native_video_view)
-        videoView?.setOnPreparedListener(this)
-        videoView?.setOnErrorListener(this)
-        videoView?.setOnCompletionListener(this)
-        videoView?.setZOrderOnTop(true)
-        if (requestAudioFocus && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            videoView?.setAudioFocusRequest(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+        try {
+            exoPlayer.addListener(this)
+            exoPlayer.setVideoSurfaceView(surfaceView)
+            handleAudioFocus()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
+    }
+
+    private fun handleAudioFocus() {
+        exoPlayer.setAudioAttributes(getAudioAttributes(), requestAudioFocus)
+    }
+
+    private fun getAudioAttributes(): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.CONTENT_TYPE_MOVIE)
+            .build()
+    }
+
+    private fun configureVolume() {
+        if (mute) {
+            exoPlayer.volume = 0f
+        } else {
+            exoPlayer.volume = volume.toFloat()
         }
     }
 
     private fun initVideo(dataSource: String?) {
         this.configurePlayer()
         if (dataSource != null) {
-            val videoUri = Uri.parse(dataSource)
-            this.videoView?.setVideoURI(videoUri)
+            val uri = Uri.parse(dataSource)
+            val dataSourceFactory = getDataSourceFactory(uri)
+            val mediaSource = ProgressiveMediaSource
+                .Factory(dataSourceFactory, DefaultExtractorsFactory())
+                .createMediaSource(MediaItem.fromUri(uri))
+            this.exoPlayer.playWhenReady = false
+            this.exoPlayer.setMediaSource(mediaSource)
+            this.exoPlayer.prepare()
+            playerState = PlayerState.PREPARED
             this.dataSource = dataSource
+        }
+    }
+
+    private fun getDataSourceFactory(uri: Uri): DataSource.Factory {
+        val scheme: String? = uri.scheme
+        return if (scheme != null && (scheme == "http" || scheme == "https")) {
+            DefaultHttpDataSourceFactory()
+        } else {
+            DefaultDataSourceFactory(context)
         }
     }
 
     private fun startPlayback() {
         if (playerState != PlayerState.PLAYING && dataSource != null) {
             if (playerState != PlayerState.NOT_INITIALIZED) {
-                videoView?.start()
+                exoPlayer.playWhenReady = true
                 playerState = PlayerState.PLAYING
             } else {
                 playerState = PlayerState.PLAY_WHEN_READY
@@ -182,70 +224,55 @@ class NativeVideoViewController(
     }
 
     private fun pausePlayback() {
-        val canPause = videoView?.canPause() ?: false
-        if (canPause) {
-            videoView?.pause()
-            playerState = PlayerState.PAUSED
-        }
+        exoPlayer.playWhenReady = false
+        playerState = PlayerState.PAUSED
     }
 
     private fun stopPlayback() {
-        videoView?.stopPlayback()
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
         playerState = PlayerState.NOT_INITIALIZED
     }
 
     private fun destroyVideoView() {
-        videoView?.stopPlayback()
-        videoView?.setOnPreparedListener(null)
-        videoView?.setOnErrorListener(null)
-        videoView?.setOnCompletionListener(null)
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
+        exoPlayer.removeListener(this)
+        exoPlayer.release()
     }
 
-    override fun onCompletion(mediaPlayer: MediaPlayer?) {
-        this.mediaPlayer = null
-        stopPlayback()
-        methodChannel.invokeMethod("player#onCompletion", null)
-    }
-
-    override fun onError(mediaPlayer: MediaPlayer?, what: Int, extra: Int): Boolean {
-        dataSource = null
-        this.mediaPlayer = null
-        playerState = PlayerState.NOT_INITIALIZED
+    private fun notifyPlayerPrepared() {
         val arguments = HashMap<String, Any>()
-        arguments["what"] = what
-        arguments["extra"] = extra
-        methodChannel.invokeMethod("player#onError", arguments)
-        return true
+        val videoFormat = exoPlayer.videoFormat
+        if (videoFormat != null) {
+            arguments["height"] = videoFormat.height
+            arguments["width"] = videoFormat.width
+            arguments["duration"] = exoPlayer.duration
+        }
+        methodChannel.invokeMethod("player#onPrepared", arguments)
     }
 
-    private fun configureVolume() {
-        if (mediaPlayer != null) {
-            if (mute) {
-                mediaPlayer?.setVolume(0f, 0f)
-            } else {
-                mediaPlayer?.setVolume(volume.toFloat(), volume.toFloat())
+    override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+        if (playbackState == Player.STATE_ENDED) {
+            stopPlayback()
+            methodChannel.invokeMethod("player#onCompletion", null)
+        } else if (playbackState == Player.STATE_READY) {
+            configureVolume()
+            if (playerState == PlayerState.PLAY_WHEN_READY) {
+                this.startPlayback()
+            } else if (playerState == PlayerState.PREPARED) {
+                notifyPlayerPrepared()
             }
         }
     }
 
-    override fun onPrepared(mediaPlayer: MediaPlayer?) {
-        this.mediaPlayer = mediaPlayer
-        configureVolume()
-        if (playerState == PlayerState.PLAY_WHEN_READY) {
-            this.startPlayback()
-        } else {
-            notifyPlayerPrepared(mediaPlayer)
-        }
-    }
-
-    private fun notifyPlayerPrepared(mediaPlayer: MediaPlayer?) {
+    override fun onPlayerError(error: PlaybackException) {
+        super.onPlayerError(error)
+        dataSource = null
+        playerState = PlayerState.NOT_INITIALIZED
         val arguments = HashMap<String, Any>()
-        if (mediaPlayer != null) {
-            arguments["height"] = mediaPlayer.videoHeight
-            arguments["width"] = mediaPlayer.videoWidth
-            arguments["duration"] = mediaPlayer.duration
-        }
-        playerState = PlayerState.PREPARED
-        methodChannel.invokeMethod("player#onPrepared", arguments)
+        arguments["what"] = error.errorCodeName
+        arguments["extra"] = error.message ?: ""
+        methodChannel.invokeMethod("player#onError", arguments)
     }
 }

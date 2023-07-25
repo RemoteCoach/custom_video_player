@@ -69,6 +69,7 @@ class VideoInfo {
   /// Duration in milliseconds of the file.
   final int? duration;
 
+
   /// Computes the aspect ratio if the [height] and [width] are not null.
   double get aspectRatio =>
       height != null && width != null && height! > 0 && width! > 0 //

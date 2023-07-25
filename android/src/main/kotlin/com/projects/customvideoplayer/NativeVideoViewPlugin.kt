@@ -1,4 +1,4 @@
-package cl.ceisufro.native_video_view
+package com.projects.customvideoplayer
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner

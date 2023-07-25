@@ -34,6 +34,8 @@ class _MediaController extends StatefulWidget {
   /// is touched.
   final VolumeChangedCallback? onVolumeChanged;
 
+  final double? aspectRatio;
+
   /// Constructor of the widget.
   const _MediaController({
     Key? key,
@@ -41,6 +43,7 @@ class _MediaController extends StatefulWidget {
     this.autoHide,
     this.autoHideTime,
     this.enableVolumeControl,
+    this.aspectRatio,
     this.controller,
     this.onControlPressed,
     this.onPositionChanged,
@@ -55,6 +58,8 @@ class _MediaController extends StatefulWidget {
 class _MediaControllerState extends State<_MediaController> {
   /// Determinate if the controls are visible or not over the widget.
   bool _visible = true;
+
+
 
   /// Timer to auto hide the controller after a few seconds.
   Timer? _autoHideTimer;
@@ -77,7 +82,9 @@ class _MediaControllerState extends State<_MediaController> {
       children: <Widget>[
         Stack(
           children: <Widget>[
-            widget.child,
+            AspectRatio(
+              aspectRatio: widget.aspectRatio ?? 16 / 9,
+                child: widget.child),
             _buildToggleWidget(),
           ],
         ),
@@ -188,11 +195,14 @@ class _MediaControls extends StatefulWidget {
   /// Callback to notify when the widget is tapped.
   final Function? onTapped;
 
+  final VideoViewController? videoViewController;
+
   /// Constructor of the widget.
   const _MediaControls({
     Key? key,
     this.controller,
     this.onControlPressed,
+    this.videoViewController,
     this.onPositionChanged,
     this.enableVolumeControl,
     this.onVolumeChanged,
@@ -246,6 +256,23 @@ class _MediaControlsState extends State<_MediaControls> {
           if (_volumeControlVisible) _buildVolumeControl(),
           _buildControlButtons(),
           _buildProgressionBar(),
+          Row(
+            children: <Widget>[
+              CurrentPosition(
+                controller:  widget.videoViewController,
+                fontSize: 14,
+                color: Colors.white,
+                currentposition: _progress.ceil()
+              ),
+              Spacer(),
+              TotalDuration(
+                fontSize: 14,
+                totalduration: _duration.ceil(),
+                color: Colors.white,
+                controller: widget.videoViewController,
+              ),
+            ],
+          ),
         ],
       ),
     );

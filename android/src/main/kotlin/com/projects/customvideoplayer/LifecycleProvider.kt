@@ -1,4 +1,4 @@
-package cl.ceisufro.native_video_view
+package com.projects.customvideoplayer
 
 import androidx.annotation.Nullable
 import androidx.lifecycle.Lifecycle
