@@ -1,4 +1,17 @@
-part of native_video_view;
+
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../native_video_view.dart';
+import 'media_control.dart';
+import 'video_file.dart';
+import 'video_source_type.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'video_widget.dart';
 
 /// Controller used to call the functions that
 /// controls the [VideoView] in Android and the [AVPlayer] in iOS.
@@ -7,7 +20,7 @@ class VideoViewController {
   final MethodChannel _channel;
 
   /// State of the [StatefulWidget].
-  final _NativeVideoViewState _videoViewState;
+  final NativeVideoViewState _videoViewState;
 
   /// Current video file loaded in the player.
   /// The [info] attribute is loaded when the player reaches
@@ -33,7 +46,7 @@ class VideoViewController {
   /// Initialize the controller.
   static Future<VideoViewController> init(
     int id,
-    _NativeVideoViewState videoViewState,
+    NativeVideoViewState videoViewState,
   ) async {
     final MethodChannel channel = MethodChannel('native_video_view_$id');
     return VideoViewController._(
@@ -53,7 +66,7 @@ class VideoViewController {
     switch (call.method) {
       case 'player#onCompletion':
         _stopProgressTimer();
-        _videoViewState.notifyControlChanged(_MediaControl.stop);
+        _videoViewState.notifyControlChanged(MediaControl.stop);
         _videoViewState.onCompletion(this);
         break;
       case 'player#onError':
@@ -64,9 +77,9 @@ class VideoViewController {
         _videoViewState.onError(this, what, extra, message);
         break;
       case 'player#onPrepared':
-        VideoInfo videoInfo = VideoInfo._fromJson(call.arguments);
+        VideoInfo videoInfo = VideoInfo.fromJson(call.arguments);
         _videoFile =
-            _videoFile?._copyWith(changes: VideoFile._(info: videoInfo));
+            _videoFile?.copyWith(changes: VideoFile(info: videoInfo));
         _videoViewState.onPrepared(this, videoInfo);
         break;
     }
@@ -140,7 +153,7 @@ class VideoViewController {
     };
     try {
       await _channel.invokeMethod<void>("player#setVideoSource", args);
-      _videoFile = VideoFile._(source: videoSource, sourceType: sourceType);
+      _videoFile = VideoFile(source: videoSource, sourceType: sourceType);
     } catch (ex) {
       debugPrint("$ex");
     }
@@ -151,7 +164,7 @@ class VideoViewController {
     try {
       await _channel.invokeMethod("player#start");
       _startProgressTimer();
-      _videoViewState.notifyControlChanged(_MediaControl.play);
+      _videoViewState.notifyControlChanged(MediaControl.play);
       return true;
     } catch (ex) {
       debugPrint("$ex");
@@ -165,7 +178,7 @@ class VideoViewController {
     try {
       await _channel.invokeMethod("player#pause");
       _stopProgressTimer();
-      _videoViewState.notifyControlChanged(_MediaControl.pause);
+      _videoViewState.notifyControlChanged(MediaControl.pause);
       return true;
     } catch (ex) {
       debugPrint("$ex");
@@ -179,7 +192,7 @@ class VideoViewController {
       await _channel.invokeMethod("player#stop");
       _stopProgressTimer();
       _resetProgressPosition();
-      _videoViewState.notifyControlChanged(_MediaControl.stop);
+      _videoViewState.notifyControlChanged(MediaControl.stop);
       return true;
     } catch (ex) {
       debugPrint("$ex");
@@ -221,7 +234,7 @@ class VideoViewController {
   Future<bool> toggleSound() async {
     try {
       await _channel.invokeMethod("player#toggleSound");
-      _videoViewState.notifyControlChanged(_MediaControl.toggleSound);
+      _videoViewState.notifyControlChanged(MediaControl.toggleSound);
       return true;
     } catch (ex) {
       debugPrint("$ex");

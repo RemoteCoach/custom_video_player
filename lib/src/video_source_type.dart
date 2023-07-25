@@ -1,4 +1,3 @@
-part of native_video_view;
 
 /// Enum to specify the type of source is loaded in the player.
 enum VideoSourceType {

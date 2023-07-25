@@ -1,12 +1,21 @@
-part of native_video_view;
+
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../native_video_view.dart';
+import 'controller.dart';
+import 'current_position.dart';
+import 'media_control.dart';
+import 'video_widget.dart';
 
 /// Internal callback that notifies when a button of the media control is pressed
 /// or when the video controller calls a function related to a controller.
-typedef _ControlPressedCallback = void Function(_MediaControl control);
+typedef _ControlPressedCallback = void Function(MediaControl control);
 
 /// Media controller widget that draws playback controls over the video widget.
 /// This widget controls the visibility of the controls over the widget.
-class _MediaController extends StatefulWidget {
+class MediaController extends StatefulWidget {
   /// Widget on which the media controls are drawn.
   final Widget child;
 
@@ -21,7 +30,7 @@ class _MediaController extends StatefulWidget {
 
   /// Controller to update the media controller view when the
   /// video controller is used to call a playback function.
-  final _MediaControlsController? controller;
+  final MediaControlsController? controller;
 
   /// Callback to notify when a button is pressed in the controller view.
   final _ControlPressedCallback? onControlPressed;
@@ -37,7 +46,7 @@ class _MediaController extends StatefulWidget {
   final double? aspectRatio;
 
   /// Constructor of the widget.
-  const _MediaController({
+  const MediaController({
     Key? key,
     required this.child,
     this.autoHide,
@@ -51,11 +60,11 @@ class _MediaController extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _MediaControllerState createState() => _MediaControllerState();
+  MediaControllerState createState() => MediaControllerState();
 }
 
 /// State of the media controller.
-class _MediaControllerState extends State<_MediaController> {
+class MediaControllerState extends State<MediaController> {
   /// Determinate if the controls are visible or not over the widget.
   bool _visible = true;
 
@@ -114,7 +123,7 @@ class _MediaControllerState extends State<_MediaController> {
       left: 0,
       right: 0,
       child: Offstage(
-        child: _MediaControls(
+        child: MediaControls(
           controller: widget.controller,
           onControlPressed: widget.onControlPressed,
           onPositionChanged: widget.onPositionChanged,
@@ -173,10 +182,10 @@ class _MediaControllerState extends State<_MediaController> {
 }
 
 /// Widget that contains the control buttons of the media controller.
-class _MediaControls extends StatefulWidget {
+class MediaControls extends StatefulWidget {
   /// Controller to update the media controller view when the
   /// video controller is used to call a playback function.
-  final _MediaControlsController? controller;
+  final MediaControlsController? controller;
 
   /// Callback to notify when a button is pressed in the controller view.
   final _ControlPressedCallback? onControlPressed;
@@ -198,7 +207,7 @@ class _MediaControls extends StatefulWidget {
   final VideoViewController? videoViewController;
 
   /// Constructor of the widget.
-  const _MediaControls({
+  const MediaControls({
     Key? key,
     this.controller,
     this.onControlPressed,
@@ -210,11 +219,11 @@ class _MediaControls extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _MediaControlsState createState() => _MediaControlsState();
+  MediaControlsState createState() => MediaControlsState();
 }
 
 /// State of the control buttons and slider.
-class _MediaControlsState extends State<_MediaControls> {
+class MediaControlsState extends State<MediaControls> {
   /// Determinate if the state is playing and how the play/pause button
   /// is displayed.
   bool _playing = false;
@@ -373,25 +382,25 @@ class _MediaControlsState extends State<_MediaControls> {
 
   /// Callback that is called when the controller calls a function and the
   /// control view needs to be updated.
-  void _onControlPressed(_MediaControl mediaControl) {
+  void _onControlPressed(MediaControl mediaControl) {
     _resetAutoHideTimer();
     switch (mediaControl) {
-      case _MediaControl.pause:
+      case MediaControl.pause:
         setState(() {
           _playing = false;
         });
         break;
-      case _MediaControl.play:
+      case MediaControl.play:
         setState(() {
           _playing = true;
         });
         break;
-      case _MediaControl.stop:
+      case MediaControl.stop:
         setState(() {
           _playing = false;
         });
         break;
-      case _MediaControl.toggleSound:
+      case MediaControl.toggleSound:
         setState(() {
           _muted = !_muted;
         });
@@ -434,26 +443,26 @@ class _MediaControlsState extends State<_MediaControls> {
   /// Notifies when the rewind button in the media controller has been pressed
   /// and the playback position needs to be updated through the video controller.
   void _rewind() {
-    _notifyControlPressed(_MediaControl.rwd);
+    _notifyControlPressed(MediaControl.rwd);
   }
 
   /// Notifies when the play/pause button in the media controller has been pressed
   /// and the playback state needs to be updated through the video controller.
   void _playPause() async {
-    _notifyControlPressed(_playing ? _MediaControl.pause : _MediaControl.play);
+    _notifyControlPressed(_playing ? MediaControl.pause : MediaControl.play);
   }
 
   /// Notifies when the stop button in the media controller has been pressed
   /// and the playback state needs to be updated through the video controller.
   void _stop() async {
     _onPositionChanged(0, _duration.toInt());
-    _notifyControlPressed(_MediaControl.stop);
+    _notifyControlPressed(MediaControl.stop);
   }
 
   /// Notifies when the forward button in the media controller has been pressed
   /// and the playback position needs to be updated through the video controller.
   void _forward() {
-    _notifyControlPressed(_MediaControl.fwd);
+    _notifyControlPressed(MediaControl.fwd);
   }
 
   /// Notifies when the mute button in the media controller has been pressed
@@ -467,11 +476,11 @@ class _MediaControlsState extends State<_MediaControls> {
   /// Notifies when the mute button in the media controller has been pressed
   /// and the playback position needs to be updated through the video controller.
   void _mute() {
-    _notifyControlPressed(_MediaControl.toggleSound);
+    _notifyControlPressed(MediaControl.toggleSound);
   }
 
   /// Notifies when a control button in pressed.
-  void _notifyControlPressed(_MediaControl control) {
+  void _notifyControlPressed(MediaControl control) {
     if (widget.onControlPressed != null) widget.onControlPressed!(control);
     _resetAutoHideTimer();
   }
@@ -494,7 +503,7 @@ class _MediaControlsState extends State<_MediaControls> {
 /// Media controller class used to notify when the video controller has
 /// changed the playback position/state and the controls view needs to be
 /// updated.
-class _MediaControlsController {
+class MediaControlsController {
   /// Control callback that is registered and is used to notify
   /// the video controller updates.
   _ControlPressedCallback? _controlPressedCallback;
@@ -516,7 +525,7 @@ class _MediaControlsController {
   }
 
   /// Notifies when the video controller changes the state.
-  void notifyControlPressed(_MediaControl mediaControl) {
+  void notifyControlPressed(MediaControl mediaControl) {
     if (_controlPressedCallback != null) _controlPressedCallback!(mediaControl);
   }
 

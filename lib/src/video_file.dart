@@ -1,4 +1,6 @@
-part of native_video_view;
+
+
+import '../native_video_view.dart';
 
 /// Class that represents a video loaded by the controller.
 /// Contains the path of the video source [source], the [sourceType]
@@ -15,7 +17,7 @@ class VideoFile {
 
   /// Hidden constructor. Only the controller can
   /// create instances for this class.
-  VideoFile._({
+  VideoFile({
     this.source,
     this.sourceType,
     this.info,
@@ -25,9 +27,9 @@ class VideoFile {
   ///
   /// Creates a copy of the instance with the [changes]
   /// if the parameter is given.
-  VideoFile _copyWith({VideoFile? changes}) {
+  VideoFile copyWith({VideoFile? changes}) {
     if (changes == null) return this;
-    return VideoFile._(
+    return VideoFile(
       source: changes.source ?? source,
       sourceType: changes.sourceType ?? sourceType,
       info: changes.info ?? info,
@@ -85,7 +87,7 @@ class VideoInfo {
   });
 
   /// Factory to create an instance of this class given a JSON map.
-  factory VideoInfo._fromJson(Map? map) {
+  factory VideoInfo.fromJson(Map? map) {
     return map != null
         ? VideoInfo._(
             duration: map['duration'],

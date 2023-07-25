@@ -1,30 +1,10 @@
 library native_video_view;
 
-import 'dart:async';
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-
-import 'native_video_view.dart';
-import 'src/current_position.dart';
-import 'src/total_duration.dart';
-
+export 'src/controller.dart';
+export 'src/media_control.dart';
+export 'src/media_controller.dart';
+export 'src/video_file.dart';
+export 'src/video_source_type.dart';
+export 'src/video_widget.dart';
 export 'src/current_position.dart';
-
-export 'native_video_view.dart';
 export 'src/total_duration.dart';
-
-part 'src/controller.dart';
-
-part 'src/media_control.dart';
-
-part 'src/media_controller.dart';
-
-part 'src/video_file.dart';
-
-part 'src/video_source_type.dart';
-
-part 'src/video_widget.dart';

@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import '../native_video_view.dart';
+import 'controller.dart';
 
 class TotalDuration extends StatelessWidget {
   const TotalDuration({

@@ -1,4 +1,15 @@
-part of native_video_view;
+
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../native_video_view.dart';
+import 'controller.dart';
+import 'media_control.dart';
+import 'media_controller.dart';
+import 'video_file.dart';
 
 /// Callback that is called when the view is created and ready.
 typedef ViewCreatedCallback = void Function(VideoViewController controller);
@@ -94,11 +105,11 @@ class NativeVideoView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _NativeVideoViewState createState() => _NativeVideoViewState();
+  NativeVideoViewState createState() => NativeVideoViewState();
 }
 
 /// State of the video widget.
-class _NativeVideoViewState extends State<NativeVideoView> {
+class NativeVideoViewState extends State<NativeVideoView> {
   /// Completer that is finished when [onPlatformViewCreated]
   /// is called and the controller created.
   final Completer<VideoViewController> _controller =
@@ -110,12 +121,12 @@ class _NativeVideoViewState extends State<NativeVideoView> {
 
   /// Controller of the MediaController widget. This is used
   /// to update the.
-  _MediaControlsController? _mediaController;
+  MediaControlsController? _mediaController;
 
   @override
   void initState() {
     super.initState();
-    _mediaController = _MediaControlsController();
+    _mediaController = MediaControlsController();
   }
 
   /// Disposes the state and remove the temp files created
@@ -164,7 +175,7 @@ class _NativeVideoViewState extends State<NativeVideoView> {
           )
         : child;*/
     return showMediaController
-        ? _MediaController(
+        ? MediaController(
             child: child,
             aspectRatio: _aspectRatio,
             controller: _mediaController,
@@ -201,7 +212,7 @@ class _NativeVideoViewState extends State<NativeVideoView> {
 
   /// Notifies when an action of the player (play, pause & stop) must be
   /// reflected by the media controller view.
-  void notifyControlChanged(_MediaControl mediaControl) {
+  void notifyControlChanged(MediaControl mediaControl) {
     if (_mediaController != null)
       _mediaController!.notifyControlPressed(mediaControl);
   }
@@ -242,19 +253,19 @@ class _NativeVideoViewState extends State<NativeVideoView> {
   /// When a control is pressed in the media controller, the actions are
   /// realized by the [VideoViewController] and then the result is returned
   /// to the media controller to update the view.
-  void _onControlPressed(_MediaControl mediaControl) async {
+  void _onControlPressed(MediaControl mediaControl) async {
     VideoViewController controller = await _controller.future;
     switch (mediaControl) {
-      case _MediaControl.pause:
+      case MediaControl.pause:
         controller.pause();
         break;
-      case _MediaControl.play:
+      case MediaControl.play:
         controller.play();
         break;
-      case _MediaControl.stop:
+      case MediaControl.stop:
         controller.stop();
         break;
-      case _MediaControl.fwd:
+      case MediaControl.fwd:
         int? duration = controller.videoFile?.info?.duration;
         int position = await controller.currentPosition();
         if (duration != null && position != -1) {
@@ -264,7 +275,7 @@ class _NativeVideoViewState extends State<NativeVideoView> {
           notifyPlayerPosition(newPosition, duration);
         }
         break;
-      case _MediaControl.rwd:
+      case MediaControl.rwd:
         int? duration = controller.videoFile?.info?.duration;
         int position = await controller.currentPosition();
         if (duration != null && position != -1) {
@@ -273,7 +284,7 @@ class _NativeVideoViewState extends State<NativeVideoView> {
           notifyPlayerPosition(newPosition, duration);
         }
         break;
-      case _MediaControl.toggleSound:
+      case MediaControl.toggleSound:
         controller.toggleSound();
         break;
     }
