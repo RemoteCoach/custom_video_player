@@ -22,6 +22,8 @@ class VideoViewController {
   /// State of the [StatefulWidget].
   final NativeVideoViewState _videoViewState;
 
+  bool? isInitialized;
+
   /// Current video file loaded in the player.
   /// The [info] attribute is loaded when the player reaches
   /// the prepared state.
@@ -81,6 +83,7 @@ class VideoViewController {
         _videoFile =
             _videoFile?.copyWith(changes: VideoFile(info: videoInfo));
         _videoViewState.onPrepared(this, videoInfo);
+        isInitialized = true;
         break;
     }
   }

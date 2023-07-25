@@ -91,9 +91,12 @@ class MediaControllerState extends State<MediaController> {
       children: <Widget>[
         Stack(
           children: <Widget>[
-            AspectRatio(
-              aspectRatio: widget.aspectRatio ?? 16 / 9,
-                child: widget.child),
+            Container(
+              alignment: Alignment.center,
+              child: AspectRatio(
+                aspectRatio: widget.aspectRatio ?? 16 / 9,
+                  child: widget.child),
+            ),
             _buildToggleWidget(),
           ],
         ),
