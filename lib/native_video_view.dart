@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'native_video_view.dart';
+import 'src/current_position.dart';
+import 'src/total_duration.dart';
 
 export 'src/current_position.dart';
 
