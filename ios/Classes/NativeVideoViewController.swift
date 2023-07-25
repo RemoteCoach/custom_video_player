@@ -2,7 +2,6 @@
 //  NativeVideoViewController.swift
 //  Runner
 //
-//  Created by Luis Jara Castillo on 11/4/19.
 //
 
 import Foundation

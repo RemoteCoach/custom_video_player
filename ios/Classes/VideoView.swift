@@ -2,7 +2,6 @@
 //  VideoView.swift
 //  native_video_view
 //
-//  Created by Luis Jara Castillo on 11/4/19.
 //
 
 import UIKit
