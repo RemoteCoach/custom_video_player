@@ -8,11 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-export 'src/total_duration.dart';
+import 'native_video_view.dart';
+
 export 'src/current_position.dart';
 
-import 'native_video_view.dart';
-import 'src/total_duration.dart';
+export 'native_video_view.dart';
+export 'src/total_duration.dart';
 
 part 'src/controller.dart';
 
