@@ -258,7 +258,7 @@ class _MediaControlsState extends State<_MediaControls> {
           _buildProgressionBar(),
           Row(
             children: <Widget>[
-              CurrentPosition(
+              CurrentVideoPosition(
                 controller:  widget.videoViewController,
                 fontSize: 14,
                 color: Colors.white,

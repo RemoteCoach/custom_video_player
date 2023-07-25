@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../native_video_view.dart';
 
-class CurrentPosition extends StatelessWidget {
-  const CurrentPosition({
+class CurrentVideoPosition extends StatelessWidget {
+  const CurrentVideoPosition({
     Key? key,
     this.fontSize,
     this.controller,
