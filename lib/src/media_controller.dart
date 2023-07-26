@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../native_video_view.dart';
 import 'controller.dart';
@@ -31,6 +32,7 @@ class MediaController extends StatefulWidget {
   /// Controller to update the media controller view when the
   /// video controller is used to call a playback function.
   final MediaControlsController? controller;
+  final VideoViewController? videocontroller;
 
   /// Callback to notify when a button is pressed in the controller view.
   final _ControlPressedCallback? onControlPressed;
@@ -43,6 +45,8 @@ class MediaController extends StatefulWidget {
   /// is touched.
   final VolumeChangedCallback? onVolumeChanged;
 
+  final VoidCallback? onFullScreen;
+
   final double? aspectRatio;
 
   /// Constructor of the widget.
@@ -54,9 +58,11 @@ class MediaController extends StatefulWidget {
     this.enableVolumeControl,
     this.aspectRatio,
     this.controller,
+    this.videocontroller,
     this.onControlPressed,
     this.onPositionChanged,
     this.onVolumeChanged,
+    this.onFullScreen
   }) : super(key: key);
 
   @override
@@ -131,8 +137,12 @@ class MediaControllerState extends State<MediaController> {
           onControlPressed: widget.onControlPressed,
           onPositionChanged: widget.onPositionChanged,
           enableVolumeControl: widget.enableVolumeControl,
+          videoViewController: widget.videocontroller,
           onVolumeChanged: widget.onVolumeChanged,
           onTapped: _onControllerTapped,
+          onFullScreen: (){
+            widget.onFullScreen?.call();
+          },
         ),
         offstage: !_visible,
       ),
@@ -209,6 +219,8 @@ class MediaControls extends StatefulWidget {
 
   final VideoViewController? videoViewController;
 
+  final VoidCallback? onFullScreen;
+
   /// Constructor of the widget.
   const MediaControls({
     Key? key,
@@ -218,6 +230,7 @@ class MediaControls extends StatefulWidget {
     this.onPositionChanged,
     this.enableVolumeControl,
     this.onVolumeChanged,
+    this.onFullScreen,
     this.onTapped,
   }) : super(key: key);
 
@@ -277,6 +290,37 @@ class MediaControlsState extends State<MediaControls> {
                 currentposition: _progress.ceil()
               ),
               Spacer(),
+              InkWell(
+                onTap: (){
+                    widget.onFullScreen?.call();
+
+                 /* SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+                  final isLandscapeVideo = (widget.videoViewController?.videoFile?.info?.width ?? 1) > (widget.videoViewController?.videoFile?.info?.height ?? 1);
+                  final isPortraitVideo = (widget.videoViewController?.videoFile?.info?.width ?? 1) < (widget.videoViewController?.videoFile?.info?.height ?? 1);
+
+                  /// Default behavior
+                  /// Video w > h means we force landscape
+                  if (isLandscapeVideo) {
+                    SystemChrome.setPreferredOrientations([
+                      DeviceOrientation.landscapeLeft,
+                      DeviceOrientation.landscapeRight,
+                    ]);
+                  }
+
+                  /// Video h > w means we force portrait
+                  else if (isPortraitVideo) {
+                    SystemChrome.setPreferredOrientations([
+                      DeviceOrientation.portraitUp,
+                      DeviceOrientation.portraitDown,
+                    ]);
+                  }*/
+
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0,right: 8),
+                  child: Icon(Icons.fullscreen, color: Colors.white, size: 20),
+                ),
+              ),
               TotalDuration(
                 fontSize: 14,
                 totalduration: _duration.ceil(),
@@ -394,7 +438,7 @@ class MediaControlsState extends State<MediaControls> {
         });
         break;
       case MediaControl.play:
-        setState(() {
+          setState(() {
           _playing = true;
         });
         break;

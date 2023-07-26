@@ -14,7 +14,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: any
   flutter_plugin_android_lifecycle: any
-  native_video_view:
+  custom_video_player:
     path: ../
 
 dev_dependencies:

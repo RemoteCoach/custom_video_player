@@ -1,5 +1,5 @@
+import 'package:custom_video_player/native_video_view.dart';
 import 'package:flutter/material.dart';
-import 'package:native_video_view/native_video_view.dart';
 
 void main() => runApp(const MaterialApp(home: MyApp()));
 

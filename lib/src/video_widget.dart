@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -29,6 +28,8 @@ typedef ErrorCallback = void Function(
 /// The [videoInfo] parameter contains info related to the file loaded.
 typedef PreparedCallback = void Function(
     VideoViewController controller, VideoInfo videoInfo);
+
+typedef FullScreenCallback = void Function(VideoViewController controller);
 
 /// Callback that indicates the progression of the media being played.
 typedef ProgressionCallback = void Function(int elapsedTime, int duration);
@@ -73,6 +74,8 @@ class NativeVideoView extends StatefulWidget {
   /// when a video has finished playing.
   final CompletionCallback onCompletion;
 
+  final VoidCallback onFullScreen;
+
   /// Instance of [ErrorCallback] to notify
   /// when the player had an error loading the video source.
   final ErrorCallback? onError;
@@ -100,6 +103,7 @@ class NativeVideoView extends StatefulWidget {
     required this.onCreated,
     required this.onPrepared,
     required this.onCompletion,
+    required this.onFullScreen,
     this.onError,
     this.onProgress,
   }) : super(key: key);
@@ -133,7 +137,7 @@ class NativeVideoViewState extends State<NativeVideoView> {
   /// by the Widget.
   @override
   void dispose() {
-    _disposeController();
+    disposeController();
     super.dispose();
   }
 
@@ -166,14 +170,7 @@ class NativeVideoViewState extends State<NativeVideoView> {
 
   /// Builds the video view depending of the configuration.
   Widget _buildVideoView({required Widget child}) {
-    bool keepAspectRatio = widget.keepAspectRatio ?? false;
     bool showMediaController = widget.showMediaController ?? false;
-   /* Widget videoView = keepAspectRatio
-        ? AspectRatio(
-            child: child,
-            aspectRatio: _aspectRatio,
-          )
-        : child;*/
     return showMediaController
         ? MediaController(
             child: child,
@@ -185,6 +182,10 @@ class NativeVideoViewState extends State<NativeVideoView> {
             onControlPressed: _onControlPressed,
             onPositionChanged: _onPositionChanged,
             onVolumeChanged: _onVolumeChanged,
+            onFullScreen: () {
+              //disposeController();
+              widget.onFullScreen.call();
+            },
           )
         : child;
   }
@@ -198,7 +199,7 @@ class NativeVideoViewState extends State<NativeVideoView> {
   }
 
   /// Disposes the controller of the player.
-  void _disposeController() async {
+  void disposeController() async {
     final controller = await _controller.future;
     controller.dispose();
   }

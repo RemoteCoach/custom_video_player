@@ -24,6 +24,8 @@ class VideoViewController {
 
   bool? isInitialized;
 
+
+
   /// Current video file loaded in the player.
   /// The [info] attribute is loaded when the player reaches
   /// the prepared state.
